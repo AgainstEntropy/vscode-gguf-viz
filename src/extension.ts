@@ -11,7 +11,10 @@ export function activate(context: vscode.ExtensionContext) {
         "gguf-viz", // Identifies the type of the webview. Used internally
         "gguf-viz", // Title of the panel displayed to the user
         vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-        {} // Webview options. More on these later.
+        {
+          // Webview options.
+          enableScripts: true, // Enable scripts in the webview
+        }
       );
 
       panel.webview.html = htmlContentLoading;
@@ -24,6 +27,20 @@ export function activate(context: vscode.ExtensionContext) {
         .catch((error) => {
           console.error("Failed to get webview content:", error);
         });
+
+      panel.webview.onDidReceiveMessage((message) => {
+        let searchTerm = "";
+        switch (message.command) {
+          case "search":
+            searchTerm = message.text;
+            break;
+          case "reset":
+            break;
+        }
+        getWebviewContent(uri, searchTerm).then(({ htmlContent }) => {
+          panel.webview.html = htmlContent;
+        });
+      });
     })
   );
 }

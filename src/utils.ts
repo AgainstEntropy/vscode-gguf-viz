@@ -4,12 +4,16 @@ import { GGMLQuantizationType, gguf } from "@huggingface/gguf";
 
 import { htmlContentTemplate, replaceMark } from "./constants";
 
-export async function getWebviewContent(uri: vscode.Uri) {
+export async function getWebviewContent(
+  uri: vscode.Uri,
+  searchTerm: string = ""
+) {
   const fileName = path.basename(uri.fsPath);
-  const { metadataRows, tensorRows } = await getGGUFInfo(uri);
+  const { metadataRows, tensorRows } = await getGGUFInfo(uri, searchTerm);
 
   const content = formatTemplate(htmlContentTemplate, {
     fileName,
+    searchTerm,
     metadataRows,
     tensorRows,
   });
@@ -20,12 +24,15 @@ export async function getWebviewContent(uri: vscode.Uri) {
   };
 }
 
-async function getGGUFInfo(uri: vscode.Uri) {
+async function getGGUFInfo(uri: vscode.Uri, searchTerm: string = "") {
   const { metadata, tensorInfos } = await gguf(uri.fsPath, {
     allowLocalFile: true,
   });
 
   const metadataRows = Object.entries(metadata)
+    .filter(([key, value]) => {
+      return key.includes(searchTerm) || String(value).includes(searchTerm);
+    })
     .map(([key, value]) => {
       return `
         <tr>
@@ -36,6 +43,13 @@ async function getGGUFInfo(uri: vscode.Uri) {
     .join("");
 
   const tensorRows = tensorInfos
+    .filter((tensorInfo) => {
+      return (
+        tensorInfo.name.includes(searchTerm) ||
+        GGMLQuantizationType[tensorInfo.dtype].includes(searchTerm) ||
+        tensorInfo.shape.join(", ").includes(searchTerm)
+      );
+    })
     .map(
       (tensorInfo) => `
         <tr>

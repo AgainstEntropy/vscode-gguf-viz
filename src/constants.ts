@@ -7,6 +7,14 @@ export const htmlContentTemplate = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GGUF Visualizer</title>
     <style>
+        .fade-in {
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+        .fade-in.visible {
+            opacity: 1;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -23,34 +31,65 @@ export const htmlContentTemplate = `<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <h1>GGUF file: ${replaceMark}{fileName}${replaceMark}</h1>
+    <div class="fade-in" id="content">
+        <h1>GGUF file: ${replaceMark}{fileName}${replaceMark}</h1>
 
-    <h2>Metadata</h2>
-    <table>
-    <thead>
-        <tr>
-        <th>Metadata</th>
-        <th>Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        ${replaceMark}{metadataRows}${replaceMark}
-    </tbody>
-    </table>
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search..." value="${replaceMark}{searchTerm}${replaceMark}" />
+            <button onclick="performSearch()">Search</button>
+            <button onclick="resetSearch()">Reset</button>
+        </div>
 
-    <h2>Tensors</h2>
-    <table>
-    <thead>
-        <tr>
-        <th>Tensors</th>
-        <th>Shape</th>
-        <th>Precision</th>
-        </tr>
-    </thead>
-    <tbody>
-        ${replaceMark}{tensorRows}${replaceMark}
-    </tbody>
-    </table>
+        <h2>Metadata</h2>
+        <table>
+        <thead>
+            <tr>
+            <th>Metadata</th>
+            <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${replaceMark}{metadataRows}${replaceMark}
+        </tbody>
+        </table>
+
+        <h2>Tensors</h2>
+        <table>
+        <thead>
+            <tr>
+            <th>Tensors</th>
+            <th>Shape</th>
+            <th>Precision</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${replaceMark}{tensorRows}${replaceMark}
+        </tbody>
+        </table>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        function performSearch() {
+            const searchTerm = document.getElementById("search-input").value;
+            vscode.postMessage({ command: "search", text: searchTerm });
+        }
+
+        function resetSearch() {
+            vscode.postMessage({ command: "reset" });
+        }
+
+        document.getElementById("search-input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                performSearch();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("content").classList.add("visible");
+        });
+    </script>
 </body>
 </html>`;
 
