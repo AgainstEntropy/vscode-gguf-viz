@@ -6,7 +6,7 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "gguf-viz" is now active!');
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("gguf-viz.start", (uri: vscode.Uri) => {
+    vscode.commands.registerCommand("gguf-viz.open", (uri: vscode.Uri) => {
       const panel = vscode.window.createWebviewPanel(
         "gguf-viz", // Identifies the type of the webview. Used internally
         "gguf-viz", // Title of the panel displayed to the user
